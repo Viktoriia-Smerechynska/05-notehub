@@ -20,14 +20,15 @@ const NoteList = ({ notes }: NoteListProps) => {
   return (
     <ul className={css.list}>
       {notes.map((note) => (
-        // ВИПРАВЛЕНО: Якщо в .module.css назва класу "listItem", вона застосується і поверне білу картку з тінню
         <li key={note.id} className={css.listItem || css.item}>
           <h2 className={css.title}>{note.title}</h2>
 
           <p className={css.content}>{note.content}</p>
 
           <div className={css.footer}>
-            {note.tag && <span className={css.tag}>{note.tag}</span>}
+            {}
+            {}
+            <span className={css.tag}>{note.tag}</span>
 
             <button
               className={css.button}

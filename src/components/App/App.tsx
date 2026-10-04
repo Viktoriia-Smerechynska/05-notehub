@@ -31,7 +31,7 @@ const App = () => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["notes", page, searchQuery],
     queryFn: () => fetchNotes(page, searchQuery),
-    placeholderData: keepPreviousData, // Саме ця властивість забезпечує плавну пагінацію без мерехтіння
+    placeholderData: keepPreviousData,
   });
 
   const handlePageChange = (selectedItem: { selected: number }): void => {
@@ -65,7 +65,7 @@ const App = () => {
 
         {isError && !isLoading && <ErrorMessage />}
 
-        {/* ВИПРАВЛЕНО: Проп onDelete видалено, NoteList тепер автономний */}
+        {}
         {!isLoading && !isError && notes.length > 0 && (
           <NoteList notes={notes} />
         )}

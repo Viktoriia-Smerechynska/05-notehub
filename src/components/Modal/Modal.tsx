@@ -9,10 +9,8 @@ interface ModalProps {
 
 const Modal = ({ children, onClose }: ModalProps) => {
   useEffect(() => {
-    // 1. Запам'ятовуємо початковий стиль скролу сторінки
     const originalStyle = window.getComputedStyle(document.body).overflow;
 
-    // 2. Блокуємо прокручування при відкритті модалки
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -25,7 +23,7 @@ const Modal = ({ children, onClose }: ModalProps) => {
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      // 3. ПОВЕРТАЄМО СКРОЛЛ НАЗАД: викликається автоматично при закритті модалки
+
       document.body.style.overflow = originalStyle;
     };
   }, [onClose]);

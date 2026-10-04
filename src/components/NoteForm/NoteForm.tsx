@@ -1,7 +1,7 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { useMutation, useQueryClient } from "@tanstack/react-query"; // Додано для автономної мутації
-import { createNote } from "../../services/noteService"; // Імпортуємо функцію запиту створення
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createNote } from "../../services/noteService";
 import css from "./NoteForm.module.css";
 import type { NoteTag } from "../../types/note";
 
@@ -11,7 +11,6 @@ interface FormValues {
   tag: NoteTag;
 }
 
-// Пропс onSubmit більше НЕ потрібен, залишаємо тільки onCancel для закриття модалки
 interface NoteFormProps {
   onCancel: () => void;
 }
@@ -21,24 +20,21 @@ const NoteSchema = Yup.object().shape({
     .min(3, "Title must be at least 3 characters")
     .max(50, "Title must be 50 characters or less")
     .required("Title is required"),
-  content: Yup.string()
-    .max(500, "Content must be 500 characters or less")
-    .required("Content is required"),
+  content: Yup.string().max(500, "Content must be 500 characters or less"),
+
   tag: Yup.string()
     .oneOf(["Todo", "Work", "Personal", "Meeting", "Shopping"])
     .required("Tag is required"),
 });
 
 const NoteForm = ({ onCancel }: NoteFormProps) => {
-  const queryClient = useQueryClient(); // Клієнт для інвалідації
+  const queryClient = useQueryClient();
 
-  // ВИПРАВЛЕНО: Інтегруємо логіку мутації TanStack Query безпосередньо в компонент форми
   const createNoteMutation = useMutation({
     mutationFn: createNote,
     onSuccess: () => {
-      // Інвалідація списку нотаток, щоб вони миттєво оновилися на екрані
       queryClient.invalidateQueries({ queryKey: ["notes"] });
-      onCancel(); // Закриваємо модалку після успішного створення нотатки
+      onCancel();
     },
   });
 
@@ -53,7 +49,6 @@ const NoteForm = ({ onCancel }: NoteFormProps) => {
       initialValues={initialValues}
       validationSchema={NoteSchema}
       onSubmit={(values, { setSubmitting }) => {
-        // Викликаємо мутацію прямо тут
         createNoteMutation.mutate(values, {
           onSettled: () => setSubmitting(false),
         });

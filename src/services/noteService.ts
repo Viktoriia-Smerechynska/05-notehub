@@ -18,11 +18,10 @@ export interface FetchNotesResponse {
   totalNotes: number;
 }
 
-// ВИПРАВЛЕНО: Інтерфейс суворо використовує title, content та tag (без body та tags) за вимогою ментора
 export interface CreateNoteData {
   title: string;
-  content: string; // Нове поле відповідно до API
-  tag: NoteTag; // Нове поле в однині відповідно до API
+  content: string;
+  tag: NoteTag;
 }
 
 export const fetchNotes = async (
@@ -39,7 +38,6 @@ export const fetchNotes = async (
   return response.data;
 };
 
-// ВИПРАВЛЕНО: Функція тепер приймає та відправляє на бекенд тільки чисті очікувані дані
 export const createNote = async (noteData: CreateNoteData): Promise<Note> => {
   const response = await notehubApi.post<Note>("/notes", noteData);
   return response.data;
