@@ -1,31 +1,40 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteNote } from "../../services/noteService";
 import css from "./NoteList.module.css";
 import type { Note } from "../../types/note";
 
 interface NoteListProps {
   notes: Note[];
-  onDelete: (id: string) => void;
 }
 
-const NoteList = ({ notes, onDelete }: NoteListProps) => {
+const NoteList = ({ notes }: NoteListProps) => {
+  const queryClient = useQueryClient();
+
+  const deleteNoteMutation = useMutation({
+    mutationFn: deleteNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+    },
+  });
+
   return (
     <ul className={css.list}>
       {notes.map((note) => (
-        <li key={note.id} className={css.listItem}>
+        // ВИПРАВЛЕНО: Якщо в .module.css назва класу "listItem", вона застосується і поверне білу картку з тінню
+        <li key={note.id} className={css.listItem || css.item}>
           <h2 className={css.title}>{note.title}</h2>
-          <p className={css.content}>{note.body}</p>
+
+          <p className={css.content}>{note.content}</p>
+
           <div className={css.footer}>
-            {}
-            <div className={css.tagsContainer}>
-              {note.tags &&
-                note.tags.map((tag, index) => (
-                  <span key={index} className={css.tag}>
-                    {tag}
-                  </span>
-                ))}
-            </div>
-            {}
-            <button className={css.button} onClick={() => onDelete(note.id)}>
-              Delete
+            {note.tag && <span className={css.tag}>{note.tag}</span>}
+
+            <button
+              className={css.button}
+              onClick={() => deleteNoteMutation.mutate(note.id)}
+              disabled={deleteNoteMutation.isPending}
+            >
+              {deleteNoteMutation.isPending ? "..." : "Delete"}
             </button>
           </div>
         </li>

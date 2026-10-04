@@ -1,15 +1,18 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { useMutation, useQueryClient } from "@tanstack/react-query"; // Додано для автономної мутації
+import { createNote } from "../../services/noteService"; // Імпортуємо функцію запиту створення
 import css from "./NoteForm.module.css";
+import type { NoteTag } from "../../types/note";
 
 interface FormValues {
   title: string;
   content: string;
-  tag: "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
+  tag: NoteTag;
 }
 
+// Пропс onSubmit більше НЕ потрібен, залишаємо тільки onCancel для закриття модалки
 interface NoteFormProps {
-  onSubmit: (values: { title: string; body: string; tags: string[] }) => void;
   onCancel: () => void;
 }
 
@@ -18,13 +21,27 @@ const NoteSchema = Yup.object().shape({
     .min(3, "Title must be at least 3 characters")
     .max(50, "Title must be 50 characters or less")
     .required("Title is required"),
-  content: Yup.string().max(500, "Content must be 500 characters or less"),
+  content: Yup.string()
+    .max(500, "Content must be 500 characters or less")
+    .required("Content is required"),
   tag: Yup.string()
     .oneOf(["Todo", "Work", "Personal", "Meeting", "Shopping"])
     .required("Tag is required"),
 });
 
-const NoteForm = ({ onSubmit, onCancel }: NoteFormProps) => {
+const NoteForm = ({ onCancel }: NoteFormProps) => {
+  const queryClient = useQueryClient(); // Клієнт для інвалідації
+
+  // ВИПРАВЛЕНО: Інтегруємо логіку мутації TanStack Query безпосередньо в компонент форми
+  const createNoteMutation = useMutation({
+    mutationFn: createNote,
+    onSuccess: () => {
+      // Інвалідація списку нотаток, щоб вони миттєво оновилися на екрані
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      onCancel(); // Закриваємо модалку після успішного створення нотатки
+    },
+  });
+
   const initialValues: FormValues = {
     title: "",
     content: "",
@@ -35,11 +52,10 @@ const NoteForm = ({ onSubmit, onCancel }: NoteFormProps) => {
     <Formik
       initialValues={initialValues}
       validationSchema={NoteSchema}
-      onSubmit={(values) => {
-        onSubmit({
-          title: values.title,
-          body: values.content,
-          tags: [values.tag],
+      onSubmit={(values, { setSubmitting }) => {
+        // Викликаємо мутацію прямо тут
+        createNoteMutation.mutate(values, {
+          onSettled: () => setSubmitting(false),
         });
       }}
     >
@@ -90,9 +106,9 @@ const NoteForm = ({ onSubmit, onCancel }: NoteFormProps) => {
             <button
               type="submit"
               className={css.submitButton}
-              disabled={isSubmitting}
+              disabled={isSubmitting || createNoteMutation.isPending}
             >
-              Create note
+              {createNoteMutation.isPending ? "Creating..." : "Create note"}
             </button>
           </div>
         </Form>

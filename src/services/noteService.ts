@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Note } from "../types/note";
+import type { Note, NoteTag } from "../types/note";
 
 const TOKEN = import.meta.env.VITE_NOTEHUB_TOKEN;
 
@@ -14,19 +14,17 @@ const notehubApi = axios.create({
 export interface FetchNotesResponse {
   notes: Note[];
   page: number;
-  totalPages: number; // Потрібно для перевірки умови рендеру пагінації
+  totalPages: number;
   totalNotes: number;
 }
 
+// ВИПРАВЛЕНО: Інтерфейс суворо використовує title, content та tag (без body та tags) за вимогою ментора
 export interface CreateNoteData {
   title: string;
-  body: string;
-  tags?: string[];
+  content: string; // Нове поле відповідно до API
+  tag: NoteTag; // Нове поле в однині відповідно до API
 }
 
-/**
- * Оновлена функція завантаження нотаток з підтримкою page та perPage відповідно до ТЗ
- */
 export const fetchNotes = async (
   page: number = 1,
   search: string = "",
@@ -34,13 +32,14 @@ export const fetchNotes = async (
   const response = await notehubApi.get<FetchNotesResponse>("/notes", {
     params: {
       page,
-      perPage: 12, // Сувора вимога ТЗ: передавати параметр perPage (наприклад, 12 нотаток на сторінку)
+      perPage: 12,
       search,
     },
   });
   return response.data;
 };
 
+// ВИПРАВЛЕНО: Функція тепер приймає та відправляє на бекенд тільки чисті очікувані дані
 export const createNote = async (noteData: CreateNoteData): Promise<Note> => {
   const response = await notehubApi.post<Note>("/notes", noteData);
   return response.data;
