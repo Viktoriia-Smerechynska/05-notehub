@@ -13,9 +13,8 @@ const notehubApi = axios.create({
 
 export interface FetchNotesResponse {
   notes: Note[];
-  page: number;
+
   totalPages: number;
-  totalNotes: number;
 }
 
 export interface CreateNoteData {
